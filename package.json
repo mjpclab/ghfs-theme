@@ -1,0 +1,15 @@
+{
+  "name": "ghfs-theme",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "theme packs for GHFS(Go HTTP File Server)",
+  "main": "index.js",
+  "scripts": {},
+  "author": "MJ PC Lab",
+  "license": "MIT",
+  "devDependencies": {
+    "clean-css": "^5.3.3",
+    "html-minifier": "^4.0.0",
+    "terser": "^5.46.0"
+  }
+}

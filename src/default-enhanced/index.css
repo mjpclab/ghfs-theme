@@ -105,7 +105,7 @@ html::before {
 	content: '';
 	position: absolute;
 	position: fixed;
-	z-index: 2;
+	z-index: 3;
 	left: 0;
 	top: 0;
 	right: 0;
@@ -211,7 +211,7 @@ html.dragging::before {
 	visibility: hidden;
 	position: absolute;
 	position: sticky;
-	z-index: 1;
+	z-index: 3;
 	left: 0;
 	top: 0;
 	width: 100%;
@@ -325,12 +325,6 @@ html.dragging::before {
 	position: relative;
 }
 
-.archive {
-	margin: 1em;
-	overflow: hidden;
-	zoom: 1;
-}
-
 .archive a {
 	position: relative;
 	float: left;
@@ -413,6 +407,48 @@ html.dragging::before {
 	padding: 0 0.5em;
 }
 
+.actions {
+	position: sticky;
+	z-index: 2;
+	top: 0;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	background: #fff;
+}
+
+.actions > * {
+	display: flex;
+}
+
+.actions button {
+	padding: 0.4em 1em;
+}
+
+.actions .need-select {
+	visibility: hidden;
+}
+
+.actions .action-list button + button {
+	margin-left: 1em;
+}
+
+.actions .cancel-select {
+	display: none;
+}
+
+.selecting .actions .need-select {
+	visibility: visible;
+}
+
+.selecting .actions .start-select {
+	display: none;
+}
+
+.selecting .actions .cancel-select {
+	display: inline-block;
+}
+
 .item-list {
 	margin: 1em;
 	line-height: 1.2;
@@ -427,8 +463,7 @@ html.dragging::before {
 	padding: 0.6em;
 }
 
-.item-list .detail,
-.item-list .delete {
+.item-list .detail {
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
@@ -437,8 +472,87 @@ html.dragging::before {
 	zoom: 1;
 }
 
-.has-deletable .detail {
-	padding-right: 2.2em;
+/* icon */
+.item-list .detail {
+	padding-left: 3em;
+	position: relative;
+}
+
+.selecting .item-list .icon {
+	display: none;
+}
+
+.item-list .icon,
+.item-list .icon::before {
+	display: flex;
+	content: '';
+	position: absolute;
+	border: 1px #999 solid;
+}
+
+/* icon - file */
+.item-list .file .icon {
+	left: 0.6em;
+	width: 1.2em;
+	height: 1.2em;
+	border-top-right-radius: 0.4em;
+	background: #fff;
+	background-image: linear-gradient(to bottom, #fff, #f1f1f1);
+}
+
+.item-list .file .icon::before {
+	left: 0.2em;
+	width: 0.8em;
+	height: 0.3em;
+	border-width: 2px 0;
+	border-style: dotted;
+	margin-top: 0.2em;
+	transform: skew(20deg);
+}
+
+/* icon - dir */
+.item-list .dir .icon,
+.item-list .dir .icon::before {
+	background: #fec;
+	background-image: linear-gradient(to bottom, #ffd, #fec);
+}
+
+.item-list .dir .icon {
+	left: 0.6em;
+	width: 1em;
+	height: 1em;
+}
+
+.item-list .dir .icon::before {
+	width: 1em;
+	left: 0;
+	bottom: 0;
+	margin: 0 0 -1px -1px;
+	height: 0.6em;
+	transform: skewX(-30deg);
+	transform-origin: left bottom;
+}
+
+/* icon - parent */
+.item-list .parent .icon {
+	left: 0.9em;
+	width: 0.9em;
+	height: 1em;
+	background: none;
+	border-width: 0 0 1px 1px;
+	border-bottom-left-radius: 0.3em;
+}
+
+.item-list .parent .icon::before {
+	left: -0.32em;
+	top: -2px;
+	width: 0;
+	height: 0;
+	border-width: 0 0.3em 0.6em;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	background: none;
+	transform: none;
 }
 
 .item-list .field {
@@ -469,27 +583,24 @@ html.dragging::before {
 	overflow: hidden;
 }
 
-.item-list .delete {
+.item-list .select {
+	display: none;
 	position: absolute;
+	z-index: 1;
 	top: 0;
-	right: 0;
+	left: 0;
 	bottom: 0;
+	width: 2.5em;
+	align-items: center;
+	justify-content: center;
+}
+
+.item-list .select:hover {
+	background: #cfc;
+}
+
+.selecting .item-list .select {
 	display: flex;
-	align-items: stretch;
-}
-
-.item-list .delete button {
-	border: 0;
-	color: #800000;
-	background: none;
-	font-weight: bold;
-	font-size: 1.6em;
-	line-height: 1em;
-	padding: 0.1875em 0.3125em 0.3125em;
-}
-
-.item-list .delete button:hover {
-	background: #fee;
 }
 
 .item-list .header .detail {
@@ -575,17 +686,25 @@ html.dragging::before {
 		background-color: #222;
 	}
 
-	.archive a {
-		border-color: #222;
-	}
-
-	.archive a:hover {
-		border-color: #555;
-	}
-
-	.item-list .detail,
-	.item-list .delete {
+	.item-list .detail {
 		border-bottom-color: #222;
+	}
+
+	.item-list .dir .icon,
+	.item-list .dir .icon::before {
+		border-color: #333;
+		background-color: #963;
+		background-image: linear-gradient(to bottom, #a74, #963);
+	}
+
+	.item-list .file .icon {
+		border-color: #333;
+		background-color: #bbb;
+		background-image: linear-gradient(to bottom, #bbb, #aaa);
+	}
+
+	.item-list .file .icon::before {
+		border-color: #333;
 	}
 
 	.item-list .size {
@@ -596,16 +715,12 @@ html.dragging::before {
 		color: #666;
 	}
 
-	.item-list .delete button {
-		color: #f99;
-	}
-
-	.item-list .delete button:hover {
-		background-color: #433;
-	}
-
 	.item-list .header .detail {
 		background-color: #181818;
+	}
+
+	.item-list .select:hover {
+		background: #353;
 	}
 
 	.error {
@@ -630,10 +745,6 @@ html.dragging::before {
 }
 
 @media print {
-	.panel, .archive {
-		display: none;
-	}
-
 	:root .panel {
 		display: none;
 	}
@@ -651,11 +762,7 @@ html.dragging::before {
 		display: none;
 	}
 
-	.has-deletable .detail {
-		padding-right: 0;
-	}
-
-	.has-deletable .delete {
+	.item-list li .select {
 		display: none;
 	}
 }

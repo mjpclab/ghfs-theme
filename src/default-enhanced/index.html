@@ -15,6 +15,7 @@
 {{$contextQueryString := .Context.QueryString}}
 {{$isDownload := .IsDownload}}
 {{$SubItemPrefix := .SubItemPrefix}}
+{{$canSelect := or .CanArchive .HasDeletable}}
 {{if not $isDownload}}
 <ol class="path-list" translate="no">
 	{{range .Paths}}
@@ -64,14 +65,6 @@
 </div>
 {{end}}
 
-{{if .CanArchive}}
-<div class="archive">
-	<a href="{{.SubItemPrefix}}?tar" download="{{.ItemName}}.tar">.tar</a>
-	<a href="{{.SubItemPrefix}}?tgz" download="{{.ItemName}}.tar.gz">.tar.gz</a>
-	<a href="{{.SubItemPrefix}}?zip" download="{{.ItemName}}.zip">.zip</a>
-</div>
-{{end}}
-
 {{if .CanDelete}}
 <script type="text/javascript">
 	function confirmDelete(form) {
@@ -86,6 +79,7 @@
 </script>
 {{end}}
 {{end}}
+
 {{if .SubItemsHtml}}
 <div class="panel filter" id="panel-filter">
 	<div class="form">
@@ -94,9 +88,28 @@
 	</div>
 </div>
 {{end}}
+<form method="POST" class="item-list-action">
+{{if $canSelect}}
+<div class="panel actions">
+	<div class="action-list">
+		{{if .CanArchive}}
+		<button class="archive" title="{{.Trans.ArchiveLabel}}" formaction="{{.SubItemPrefix}}?tgz">.tgz</button>
+		<button class="archive" title="{{.Trans.ArchiveLabel}}" formaction="{{.SubItemPrefix}}?zip">.zip</button>
+		{{end}}
+		{{if .HasDeletable}}
+		<button class="need-select delete" title="{{.Trans.DeleteLabel}}" formaction="{{.SubItemPrefix}}?delete">Del</button>
+		{{end}}
+	</div>
+	<div class="action-switch">
+		<button class="start-select">{{.Trans.SelectStart}}</button>
+		<button class="cancel-select" type="reset">{{.Trans.SelectCancel}}</button>
+	</div>
+</div>
+{{end}}
 <ul class="item-list{{if .HasDeletable}} has-deletable{{end}}">
 	{{if not $isDownload}}
 	<li class="header">{{$dirSort := .SortState.DirSort}}{{$sortKey := .SortState.Key}}
+		{{if $canSelect}}<label class="select" title="{{.Trans.SelectAll}}"><input type="checkbox" class="select-all" /></label>{{end}}
 		<span class="detail">
 		<a class="field dir" href="{{.SubItemPrefix}}{{.Context.QueryStringOfSort .SortState.NextDirSort}}">{{.Trans.ListDirLabel}}{{if eq $dirSort -1}}&uarr;{{else if eq $dirSort 1}}&darr;{{end}}</a>
 		<a class="field name" href="{{.SubItemPrefix}}{{.Context.QueryStringOfSort .SortState.NextNameSort}}">{{.Trans.ListNameLabel}}{{if eq $sortKey "n"}}&uarr;{{else if eq $sortKey "N"}}&darr;{{end}}</a>
@@ -106,24 +119,32 @@
 		</span>
 	</li>
 	<li class="parent">
+		{{if $canSelect}}<label class="select"></label>{{end}}
 		<a href="{{if .IsRoot}}./{{else}}../{{end}}{{$contextQueryString}}" class="detail">
+			<span class="icon"></span>
 			<span class="field name" translate="no">../</span>
 			<span class="field size"></span>
 			<span class="field time"></span>
 		</a>
 	</li>
 	{{end}}
-	{{range .SubItemsHtml}}
+	{{$subItems := .SubItems}}
+	{{range $i, $subItemHtml := .SubItemsHtml}}
 	<li class="{{.Type}}">
+		{{if $canSelect}}
+		{{$subItem := index $subItems $i}}
+		<label class="select"><input type="checkbox" name="name" value="{{$subItem.Name}}" /></label>
+		{{end}}
 		<a href="{{.Url}}" class="detail">
+			<span class="icon"></span>
 			<span class="field name" translate="no">{{.DisplayName}}</span>
 			<span class="field size">{{.DisplaySize}}</span>
 			<span class="field time">{{.DisplayTime}}</span>
 		</a>
-		{{if and (not $isDownload) .DeleteUrl}}<form class="delete" action="{{$SubItemPrefix}}" onsubmit="return confirmDelete(this)"><input type="hidden" name="delete"/><input type="hidden" name="name" value="{{.DeleteUrl}}"/><input type="hidden" name="contextquerystring" value="{{$contextQueryString}}"/><button type="submit">x</button></form>{{end}}
 	</li>
 	{{end}}
 </ul>
+</form>
 
 {{if eq .Status 403}}
 <div class="error">{{.Trans.Error403}}</div>

@@ -1206,66 +1206,133 @@
 		enableAddDragDrop(uploadProgressively);
 	}
 
-	function enableNonRefreshDelete() {
-		if (!document.querySelector) {
-			return;
-		}
-
-		var itemList = document.body.querySelector('.item-list');
-		if (!itemList || !itemList.addEventListener) {
-			return;
-		}
-		if (!hasClass(itemList, 'has-deletable')) return;
-
-		itemList.addEventListener('submit', function (e) {
-			if (e.defaultPrevented) {
-				return;
-			}
-
-			var form = e.target;
-
-			function onLoad() {
-				var status = this.status;
-				if (status >= 200 && status <= 299) {
-					var elItem = form;
-					while (elItem && elItem.nodeName !== 'LI') {
-						elItem = elItem.parentNode;
-					}
-					if (!elItem) {
-						return;
-					}
-					var elItemParent = elItem.parentNode;
-					elItemParent && elItemParent.removeChild(elItem);
-				} else {
-					logError('delete failed: ' + status + ' ' + this.statusText);
-				}
-			}
-
-			var params = '';
-			var els = Array.prototype.slice.call(form.elements);
-			for (var i = 0, len = els.length; i < len; i++) {
-				if (!els[i].name) {
-					continue
-				}
-				if (params.length > 0) {
-					params += '&'
-				}
-				params += els[i].name + '=' + encodeURIComponent(els[i].value)
-			}
-			var url = form.action + '?' + params;
-
-			var xhr = new XMLHttpRequest();
-			xhr.open('POST', url);	// will retrieve deleted result into bfcache
-			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-			xhr.addEventListener('load', onLoad);
-			xhr.send();
-			e.preventDefault();
-			return false;
-		}, false);
-	}
-
 	enableFilter();
 	enableKeyboardNavigate();
 	enhanceUpload();
+})();
+
+// enhanced - multi select
+(function () {
+	if (!document.querySelector || !document.addEventListener || !document.body.classList) {
+		return;
+	}
+	var form = document.body.querySelector('form.item-list-action');
+	if (!form) {
+		return;
+	}
+	var actions = form.querySelector('.actions');
+	if (!actions) {
+		return;
+	}
+
+	var classSelecting = 'selecting';
+
+	function enableSelect() {
+		var btnStartSelect = actions.querySelector('.start-select');
+		if (btnStartSelect) {
+			btnStartSelect.addEventListener('click', function (e) {
+				e.preventDefault();
+				form.reset();
+				form.classList.add(classSelecting);
+			});
+		}
+
+		var btnCancelSelect = actions.querySelector('.cancel-select');
+		if (btnCancelSelect) {
+			btnCancelSelect.addEventListener('click', function () {
+				form.classList.remove(classSelecting);
+			});
+		}
+	}
+
+	function enableSelectAll() {
+		var chkSelAll = form.querySelector('input.select-all');
+		if (!chkSelAll) {
+			return;
+		}
+
+		chkSelAll.addEventListener('change', function (e) {
+			var checked = e.target.checked;
+			var inputs = form.querySelectorAll('.item-list li:not(.none) label.select input');
+			if (!Array.isArray(inputs)) inputs = Array.prototype.slice.call(inputs);
+			inputs.forEach(function (input) {
+				input.checked = checked;
+			});
+		});
+	}
+
+	function enableConfirmDelete() {
+		if (typeof confirmDelete !== 'function') {
+			return;
+		}
+		var btnDelete = actions.querySelector('.delete');
+		if (!btnDelete) {
+			return;
+		}
+		btnDelete.addEventListener('click', function (e) {
+			if (!confirmDelete(this.form)) {
+				e.preventDefault();
+				e.stopImmediatePropagation && e.stopImmediatePropagation();
+			}
+		});
+	}
+
+	var _closest = document.body.closest ? function (fromEl, tag) {
+		return fromEl.closest(tag);
+	} : function (fromEl, tag) {
+		var tagName = tag.toUpperCase();
+		var el = fromEl;
+		while (el && el.tagName !== tagName) {
+			el = el.parentNode;
+		}
+		return el;
+	}
+
+	function enableNonRefreshDelete() {
+		var button = form.querySelector('button.delete');
+		if (button) {
+			button.addEventListener('click', function (e) {
+				if (e.defaultPrevented) {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				var url = e.target.formAction;
+				var checkboxes = Array.prototype.slice.call(form.querySelectorAll('input:checked[type=checkbox][name=name]'))
+				var body = checkboxes.map(function (el) {
+					return 'name=' + encodeURIComponent(el.value);
+				}).join('&');
+
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', url);
+				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+				xhr.addEventListener('load', function () {
+					checkboxes.forEach(function (chk) {
+						var li = _closest(chk, 'li');
+						var parent = li.parentNode;
+						parent && parent.removeChild(li);
+					})
+				});
+				xhr.send(body);
+			});
+		}
+	}
+
+	function hideSelectAfterAction() {
+		function onClick() {
+			form.classList.remove(classSelecting);
+		}
+
+		var buttons = form.querySelectorAll('button[formaction]');
+		if (!Array.isArray(buttons)) buttons = Array.prototype.slice.call(buttons);
+		buttons.forEach(function (btn) {
+			btn.addEventListener('click', onClick);
+		});
+	}
+
+	enableSelect();
+	enableSelectAll();
+	enableConfirmDelete();
 	enableNonRefreshDelete();
+	hideSelectAfterAction();
 })();

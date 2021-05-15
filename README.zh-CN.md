@@ -30,3 +30,12 @@ ghfs --theme-dir <主题目录>	#建议仅用于调试
 ![default theme](doc/img/ghfs.gif)
 
 与GHFS内建主题相同。已对模板和静态资源压缩（minify）。
+
+### Default Enhanced
+![default enhanced theme](doc/img/ghfs-enhanced.gif)
+
+基于Default主题增强。
+用户可以在打包或删除时选择多个文件。
+未增强的Default主题只能打包当前目录下所有文件。
+
+增强的主题舍弃了对HTML5支持不佳的浏览器。

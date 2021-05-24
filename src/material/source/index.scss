@@ -1,0 +1,27 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	background: #fff;
+}
+
+html {
+	font-size: 0.625em;
+	font-family: "roboto_condensedbold", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+body {
+	color: #333;
+	font-size: 1.4em;
+	font-variant-ligatures: none;
+	font-kerning: none;
+	hyphens: none;
+	padding-bottom: 1em;
+}
+
+body, input, textarea, button {
+	font-family: Consolas, "Lucida Console", "San Francisco Mono", Menlo, Monaco, "Andale Mono", "DejaVu Sans Mono", monospace;
+}
+
+input::-ms-clear {
+	display: none;
+}
